@@ -3,7 +3,9 @@ package com.alok.projects.lovable_clone.controller;
 import com.alok.projects.lovable_clone.dto.subscription.*;
 import com.alok.projects.lovable_clone.service.PlanService;
 import com.alok.projects.lovable_clone.service.SubscriptionService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,10 +14,11 @@ import java.util.List;
 @RestController
 //@RequestMapping("/api/projects/{projectId}/members")
 @RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class BillingController {
 
-    private final PlanService planService;
-    private final SubscriptionService subscriptionService;
+    PlanService planService;
+    SubscriptionService subscriptionService;
 
 
     @GetMapping("/api/plans")

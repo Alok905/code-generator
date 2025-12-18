@@ -1,12 +1,13 @@
 package com.alok.projects.lovable_clone.entity;
 
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
+import java.util.List;
 
 // its the whole project containing so many files (react project for example containing index.html, multiple .jsx files)
 @Entity
@@ -14,10 +15,15 @@ import java.time.Instant;
 @Getter
 @Setter
 public class Project {
+    @Id
     Long id;
 
     String name;
 
+    @ManyToOne
+    @JoinColumn(
+            name = "owner_id"
+    )
     User owner;
 
     Boolean isPublic = false;
@@ -25,4 +31,16 @@ public class Project {
     Instant createdAt;
     Instant updatedAt;
     Instant deletedAt; // soft delete
+
+    @OneToMany(mappedBy = "project")
+    List<UsageLog> usageLogs;
+
+    @ManyToMany(mappedBy = "projects")
+    List<User> users;
+
+    @OneToMany(mappedBy = "project")
+    List<ProjectFile> projectFiles;
+
+    @OneToOne(mappedBy = "project")
+    Preview preview;
 }

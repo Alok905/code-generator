@@ -1,6 +1,6 @@
 package com.alok.projects.lovable_clone.entity;
 
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,8 +17,18 @@ import java.time.Instant;
 public class Subscription {
     Long id;
 
+    // many to one (owning)
+    @ManyToOne
+    @JoinColumn(
+            name = "user_id"
+    )
     User user;
 
+    // one to one (inverse)
+    @OneToOne
+    @JoinColumn(
+            name = "plan_id"
+    )
     Plan plan;
 
     String stripeCustomerId;

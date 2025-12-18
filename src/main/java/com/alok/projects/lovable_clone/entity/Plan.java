@@ -2,6 +2,8 @@ package com.alok.projects.lovable_clone.entity;
 
 import com.alok.projects.lovable_clone.enums.SubscriptionStatus;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +16,8 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 public class Plan {
+
+    @Id
     Long id;
 
     String name;
@@ -27,4 +31,7 @@ public class Plan {
     Boolean unlimitedAi; // unlimited access to LLM, ignore maxTokensPerDay if true
 
     Boolean active;
+
+    @OneToOne(mappedBy = "plan")
+    Subscription subscription;
 }

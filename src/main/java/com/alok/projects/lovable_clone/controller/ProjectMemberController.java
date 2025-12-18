@@ -4,7 +4,9 @@ import com.alok.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.alok.projects.lovable_clone.dto.member.MemberResponse;
 import com.alok.projects.lovable_clone.dto.member.UpdateMemberRoleRequest;
 import com.alok.projects.lovable_clone.service.ProjectMemberService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +16,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/projects/{projectId}/members")
 @RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ProjectMemberController {
     //NOTE: here we are basically doing constructor dependency injection because, @RequiredArgsConstructor will create one constructor instantiating all variables having "final" keyword
-    private final ProjectMemberService projectMemberService;
+    ProjectMemberService projectMemberService;
 
     @GetMapping
     public ResponseEntity<List<MemberResponse>> getProjectMembers(@PathVariable Long projectId) {
@@ -34,7 +37,7 @@ public class ProjectMemberController {
     }
 
     @PatchMapping("/{memberId}")
-    public ResponseEntity<MemberResponse> updateMember(
+    public ResponseEntity<MemberResponse> updateMemberRole(
             @PathVariable Long projectId,
             @PathVariable Long memberId,
             @RequestBody UpdateMemberRoleRequest request

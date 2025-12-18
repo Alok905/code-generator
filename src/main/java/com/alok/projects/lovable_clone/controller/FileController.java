@@ -3,20 +3,20 @@ package com.alok.projects.lovable_clone.controller;
 import com.alok.projects.lovable_clone.dto.project.FileContentResponse;
 import com.alok.projects.lovable_clone.dto.project.FileNode;
 import com.alok.projects.lovable_clone.service.FileService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/projects/{projectId}/files")
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class FileController {
-    private final FileService fileService;
+    FileService fileService;
 
     @GetMapping
     public ResponseEntity<List<FileNode>> getFileTree(@PathVariable Long projectId) {
