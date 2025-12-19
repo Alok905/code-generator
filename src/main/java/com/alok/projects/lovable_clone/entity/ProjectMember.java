@@ -2,7 +2,7 @@ package com.alok.projects.lovable_clone.entity;
 
 import com.alok.projects.lovable_clone.entity.ids.ProjectMemberId;
 import com.alok.projects.lovable_clone.enums.ProjectRole;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,10 +20,21 @@ public class ProjectMember {
 
     // because it is having 2 way mapping i.e. user_id and project_id combined make the primary key of ProjectMember table
     // just understand it as the id of ProjectMember where the type is of ProjectMemberId instead of Long or String or something else
+    @EmbeddedId
     ProjectMemberId id;
 
+    @ManyToOne
+    @JoinColumn(
+            name = "project_id"
+    )
+    @MapsId("projectId")
     Project project;
 
+    @ManyToOne
+    @JoinColumn(
+            name = "user_id"
+    )
+    @MapsId("userId")
     User user;
 
     ProjectRole projectRole;

@@ -15,6 +15,7 @@ import java.time.Instant;
 @Getter
 @Setter
 public class Subscription {
+    @Id
     Long id;
 
     // many to one (owning)

@@ -35,8 +35,13 @@ public class Project {
     @OneToMany(mappedBy = "project")
     List<UsageLog> usageLogs;
 
-    @ManyToMany(mappedBy = "projects")
-    List<User> users;
+    @OneToMany(
+            mappedBy = "project"
+    )
+    List<ProjectMember> projectMembers;
+
+//    @ManyToMany(mappedBy = "projects")
+//    List<User> users;
 
     @OneToMany(mappedBy = "project")
     List<ProjectFile> projectFiles;

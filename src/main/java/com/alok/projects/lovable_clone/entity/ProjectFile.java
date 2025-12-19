@@ -35,7 +35,15 @@ public class ProjectFile {
     Instant updatedAt;
 
     // because the projects will be collaborative; multiple users can be added in the project member;
+    @ManyToOne
+    @JoinColumn(
+            name = "created_by"
+    )
     User createdBy;
+    @ManyToOne
+    @JoinColumn(
+            name = "updated_by"
+    )
     User updatedBy;
 
 }

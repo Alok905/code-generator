@@ -17,23 +17,26 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE) // it'll make the fields private by default
 @Getter
 @Setter
+@Table(
+        uniqueConstraints = {@UniqueConstraint(name = "user_project", columnNames = {"user_id", "project_id"})}
+)
 public class ChatSession {
 
-    @EmbeddedId
-    ChatSessionId id;
+//    @EmbeddedId
+//    ChatSessionId id;
+    @Id
+    Long id;
 
     @ManyToOne
     @JoinColumn(
             name = "project_id"
     )
-    @MapsId("projectId")
     Project project;
 
     @ManyToOne
     @JoinColumn(
             name = "user_id"
     )
-    @MapsId("userId")
     User user;
 
     String title;

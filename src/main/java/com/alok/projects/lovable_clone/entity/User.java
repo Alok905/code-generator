@@ -37,14 +37,21 @@ public class User {
     @OneToMany(mappedBy = "user")
     List<UsageLog> usageLogs;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_prjoect",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "project_id")
+    @OneToMany(
+            mappedBy = "user"
     )
-    List<Project> projects;
+    List<ProjectMember> projectMembers;
 
     @OneToMany(mappedBy = "owner")
     List<Project> ownedProjects;
+
+    @OneToMany(
+            mappedBy = "createdBy"
+    )
+    List<ProjectFile> createdFiles;
+
+    @OneToMany(
+            mappedBy = "updatedBy"
+    )
+    List<ProjectFile> updatedFiles;
 }
