@@ -7,10 +7,11 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
+
 public interface ProjectService {
     List<ProjectSummaryResponse> getUserProjects(Long userId);
 
-    ProjectResponse getUserProjectById(Long userId);
+    ProjectResponse getUserProjectById(Long projectId, Long userId);
 
     ProjectResponse createProject(ProjectRequest request, Long userId);
 

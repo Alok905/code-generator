@@ -1,13 +1,20 @@
 package com.alok.projects.lovable_clone.service.impl;
 
 import com.alok.projects.lovable_clone.dto.subscription.PlanResponse;
+import com.alok.projects.lovable_clone.repository.ProjectRepository;
 import com.alok.projects.lovable_clone.service.PlanService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class PlanServiceImpl implements PlanService {
+
     @Override
     public List<PlanResponse> getAllActivePlans() {
         return List.of();

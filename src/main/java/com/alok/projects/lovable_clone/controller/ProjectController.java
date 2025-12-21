@@ -28,10 +28,10 @@ public class ProjectController {
     }
 
     //NOTE: project is collaborative; but owner will be one; in ProjectResponse, user is that owner
-    @GetMapping("/{id}")
-    public ResponseEntity<ProjectResponse> getProjectById(@PathVariable Long id) {
+    @GetMapping("/{projectId}")
+    public ResponseEntity<ProjectResponse> getProjectById(@PathVariable(name = "projectId") Long id) {
         Long userId = 1L; //TODO: update later with real Spring Security
-        return ResponseEntity.ok(projectService.getUserProjectById(userId));
+        return ResponseEntity.ok(projectService.getUserProjectById(id, userId));
     }
 
     @PostMapping

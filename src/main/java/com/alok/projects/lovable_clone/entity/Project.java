@@ -1,10 +1,11 @@
 package com.alok.projects.lovable_clone.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,22 +15,32 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE) // it'll make the fields private by default
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Table(name = "projects")
 public class Project {
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(nullable = false)
     String name;
 
     @ManyToOne
     @JoinColumn(
-            name = "owner_id"
+            name = "owner_id",
+            nullable = false
     )
     User owner;
 
     Boolean isPublic = false;
 
+    @CreationTimestamp
     Instant createdAt;
+
+    @UpdateTimestamp
     Instant updatedAt;
+
     Instant deletedAt; // soft delete
 
     @OneToMany(mappedBy = "project")
