@@ -1,5 +1,6 @@
 package com.alok.projects.lovable_clone.service.impl;
 
+import com.alok.projects.lovable_clone.dto.member.InvitationRespondRequest;
 import com.alok.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.alok.projects.lovable_clone.dto.member.MemberResponse;
 import com.alok.projects.lovable_clone.dto.member.UpdateMemberRoleRequest;
@@ -13,7 +14,6 @@ import com.alok.projects.lovable_clone.repository.ProjectRepository;
 import com.alok.projects.lovable_clone.repository.UserRepository;
 import com.alok.projects.lovable_clone.service.ProjectMemberService;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
@@ -120,6 +120,28 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
         projectMemberRepository.deleteById(projectMemberId);
     }
+
+    @Override
+    public void respondInvitation(Long id, InvitationRespondRequest request, Long userId) {
+
+        Project project = projectRepository.findById(id).orElseThrow();
+
+        ProjectMemberId projectMemberId = new ProjectMemberId(id, userId);
+        ProjectMember projectMember = projectMemberRepository.findById(projectMemberId).orElseThrow();
+
+        if(projectMember.getAcceptedAt() != null) {
+            throw new RuntimeException("Invitation is already accepted");
+        }
+
+        if(!request.isAccepted()) {
+            projectMemberRepository.deleteById(projectMemberId);
+        } else {
+            projectMember.setAcceptedAt(Instant.now());
+            projectMemberRepository.save(projectMember);
+        }
+    }
+
+
 
     /// INTERNAL FUNCTIONS
     public Project getAccessibleProjectById(Long projectId, Long userId) {

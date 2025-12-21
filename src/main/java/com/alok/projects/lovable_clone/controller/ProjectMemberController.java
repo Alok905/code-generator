@@ -1,5 +1,6 @@
 package com.alok.projects.lovable_clone.controller;
 
+import com.alok.projects.lovable_clone.dto.member.InvitationRespondRequest;
 import com.alok.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.alok.projects.lovable_clone.dto.member.MemberResponse;
 import com.alok.projects.lovable_clone.dto.member.UpdateMemberRoleRequest;
@@ -53,6 +54,16 @@ public class ProjectMemberController {
     ) {
         Long userId = 1L;
         projectMemberService.removeProjectMember(projectId, memberId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/respond")
+    public ResponseEntity<Void> respondInvitation(
+            @PathVariable(name = "projectId") Long projectId,
+            @RequestBody InvitationRespondRequest request
+    ) {
+        Long userId = 2L;
+        projectMemberService.respondInvitation(projectId, request, userId);
         return ResponseEntity.noContent().build();
     }
 

@@ -1,8 +1,10 @@
 package com.alok.projects.lovable_clone.service;
 
+import com.alok.projects.lovable_clone.dto.member.InvitationRespondRequest;
 import com.alok.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.alok.projects.lovable_clone.dto.member.MemberResponse;
 import com.alok.projects.lovable_clone.dto.member.UpdateMemberRoleRequest;
+import com.alok.projects.lovable_clone.dto.project.ProjectResponse;
 import com.alok.projects.lovable_clone.enums.ProjectRole;
 import org.jspecify.annotations.Nullable;
 
@@ -16,4 +18,6 @@ public interface ProjectMemberService {
     MemberResponse updateMemberRole(Long projectId, Long memberId, UpdateMemberRoleRequest request, Long userId);
 
     void removeProjectMember(Long projectId, Long memberId, Long userId);
+
+    void respondInvitation(Long id, InvitationRespondRequest request, Long userId);
 }

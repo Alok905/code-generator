@@ -1,5 +1,6 @@
 package com.alok.projects.lovable_clone.service;
 
+import com.alok.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.alok.projects.lovable_clone.dto.project.ProjectRequest;
 import com.alok.projects.lovable_clone.dto.project.ProjectResponse;
 import com.alok.projects.lovable_clone.dto.project.ProjectSummaryResponse;
@@ -18,4 +19,5 @@ public interface ProjectService {
     ProjectResponse updateProject(Long id, ProjectRequest request, Long userId);
 
     void softDelete(Long id, Long userId);
+
 }
