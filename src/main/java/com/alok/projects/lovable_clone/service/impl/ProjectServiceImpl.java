@@ -53,24 +53,38 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectResponse getUserProjectById(Long projectId, Long userId) {
+    public ProjectResponse getUserProjectById(Long id, Long userId) {
         // we'll directly fetch from the db if user is member in that project
-        Project project = projectRepository.findAccessibleProjectById(projectId, userId).orElseThrow();
+        Project project = getAccessibleProjectById(id, userId);
         return projectMapper.toProjectResponse(project);
     }
 
 
     @Override
     public ProjectResponse updateProject(Long id, ProjectRequest request, Long userId) {
-        Project project = projectRepository.findById(id).orElseThrow();
+        Project project = getAccessibleProjectById(id, userId);
+        if(!project.getOwner().getId().equals(userId)) {
+            throw new RuntimeException("You are not allowed to delete.");
+        }
         project.setName(request.name());
-        projectRepository.save(project);
+        project = projectRepository.save(project); //NOTE: no need of saving; because after trnsaction, it'll do that by default
         return projectMapper.toProjectResponse(project);
     }
 
     @Override
     public void softDelete(Long id, Long userId) {
-        Project project = projectRepository.findById(id).orElseThrow();
+        Project project = getAccessibleProjectById(id, userId);
+        if(!project.getOwner().getId().equals(userId)) {
+            throw new RuntimeException("You are not allowed to delete.");
+        }
         project.setDeletedAt(Instant.now());
+        projectRepository.save(project);
     }
+
+
+    /// INTERNAL FUNCTIONS
+    public Project getAccessibleProjectById(Long projectId, Long userId) {
+        return projectRepository.findAccessibleProjectById(projectId, userId).orElseThrow();
+    }
+
 }
