@@ -54,7 +54,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse getUserProjectById(Long projectId, Long userId) {
-        Project project = projectRepository.findByIdAndDeletedAtIsNull(projectId).orElseThrow();
+        // we'll directly fetch from the db if user is member in that project
+        Project project = projectRepository.findAccessibleProjectById(projectId, userId).orElseThrow();
         return projectMapper.toProjectResponse(project);
     }
 
