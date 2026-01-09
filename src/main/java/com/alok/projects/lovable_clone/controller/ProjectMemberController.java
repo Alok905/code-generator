@@ -5,6 +5,7 @@ import com.alok.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.alok.projects.lovable_clone.dto.member.MemberResponse;
 import com.alok.projects.lovable_clone.dto.member.UpdateMemberRoleRequest;
 import com.alok.projects.lovable_clone.service.ProjectMemberService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -24,27 +25,24 @@ public class ProjectMemberController {
 
     @GetMapping
     public ResponseEntity<List<MemberResponse>> getProjectMembers(@PathVariable Long projectId) {
-        Long userId = 1L;
-        return ResponseEntity.ok(projectMemberService.getProjectMembers(projectId, userId));
+        return ResponseEntity.ok(projectMemberService.getProjectMembers(projectId));
     }
 
     @PostMapping
     public ResponseEntity<MemberResponse> inviteMember(
             @PathVariable Long projectId,
-            @RequestBody InviteMemberRequest request
+            @RequestBody @Valid InviteMemberRequest request
     ) {
-        Long userId = 1L;
-        return  ResponseEntity.status(HttpStatus.CREATED).body(projectMemberService.inviteMember(projectId, request, userId));
+        return  ResponseEntity.status(HttpStatus.CREATED).body(projectMemberService.inviteMember(projectId, request));
     }
 
     @PatchMapping("/{memberId}")
     public ResponseEntity<MemberResponse> updateMemberRole(
             @PathVariable Long projectId,
             @PathVariable Long memberId,
-            @RequestBody UpdateMemberRoleRequest request
+            @RequestBody @Valid UpdateMemberRoleRequest request
     ) {
-        Long userId = 1L;
-        return ResponseEntity.ok(projectMemberService.updateMemberRole(projectId, memberId, request, userId));
+        return ResponseEntity.ok(projectMemberService.updateMemberRole(projectId, memberId, request));
     }
 
     @DeleteMapping("/{memberId}")
@@ -52,18 +50,16 @@ public class ProjectMemberController {
             @PathVariable Long projectId,
             @PathVariable Long memberId
     ) {
-        Long userId = 1L;
-        projectMemberService.removeProjectMember(projectId, memberId, userId);
+        projectMemberService.removeProjectMember(projectId, memberId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/respond")
     public ResponseEntity<Void> respondInvitation(
             @PathVariable(name = "projectId") Long projectId,
-            @RequestBody InvitationRespondRequest request
+            @RequestBody @Valid InvitationRespondRequest request
     ) {
-        Long userId = 2L;
-        projectMemberService.respondInvitation(projectId, request, userId);
+        projectMemberService.respondInvitation(projectId, request);
         return ResponseEntity.noContent().build();
     }
 

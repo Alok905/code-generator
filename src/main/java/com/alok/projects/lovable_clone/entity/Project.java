@@ -10,15 +10,21 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.util.List;
 
-// its the whole project containing so many files (react project for example containing index.html, multiple .jsx files)
+/// It's the whole project containing so many files (react project for example containing index.html, multiple .jsx files)
 @Entity
-@FieldDefaults(level = AccessLevel.PRIVATE) // it'll make the fields private by default
+@FieldDefaults(level = AccessLevel.PRIVATE) /// it'll make the fields private by default
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "projects")
+@Table(
+        name = "projects",
+        indexes = {
+                @Index(name = "idx_projects_updated_at_desc", columnList = "updated_at DESC, deleted_at"),
+                @Index(name = "idx_projects_deleted_at_desc", columnList = "deleted_at")
+        }
+)
 public class Project {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -26,12 +32,12 @@ public class Project {
     @Column(nullable = false)
     String name;
 
-    @ManyToOne
-    @JoinColumn(
-            name = "owner_id",
-            nullable = false
-    )
-    User owner;
+//    @ManyToOne
+//    @JoinColumn(
+//            name = "owner_id",
+//            nullable = false
+//    )
+//    User owner;
 
     Boolean isPublic = false;
 
