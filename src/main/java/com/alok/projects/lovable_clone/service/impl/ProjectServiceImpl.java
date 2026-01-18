@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 
@@ -80,15 +81,17 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectResponse getUserProjectById(Long id) {
+    @PreAuthorize("@security.canViewProject(#projectId)")
+    public ProjectResponse getUserProjectById(Long projectId) {
         Long userId = authUtil.getCurrentUserId();
         // we'll directly fetch from the db if user is member in that project
-        Project project = getAccessibleProjectById(id, userId);
+        Project project = getAccessibleProjectById(projectId, userId);
         return projectMapper.toProjectResponse(project);
     }
 
 
     @Override
+    @PreAuthorize("@security.canEditProject(#projectId)")
     public ProjectResponse updateProject(Long id, ProjectRequest request) {
         Long userId = authUtil.getCurrentUserId();
         Project project = getAccessibleProjectById(id, userId);
@@ -104,6 +107,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @PreAuthorize("@security.canDeleteProject(#projectId)")
     public void softDelete(Long id) {
         Long userId = authUtil.getCurrentUserId();
         Project project = getAccessibleProjectById(id, userId);
