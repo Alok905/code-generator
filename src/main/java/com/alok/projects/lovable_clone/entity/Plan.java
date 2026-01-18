@@ -1,9 +1,7 @@
 package com.alok.projects.lovable_clone.entity;
 
 import com.alok.projects.lovable_clone.enums.SubscriptionStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,13 +16,16 @@ import lombok.experimental.FieldDefaults;
 public class Plan {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     String name;
 
     SubscriptionStatus status;
 
+    @Column(unique = true)
     String stripePriceId;
+
     Integer maxProjects;
     Integer maxTokensPerDay;
     Integer maxPreviews; // max number of previews allowed per plan

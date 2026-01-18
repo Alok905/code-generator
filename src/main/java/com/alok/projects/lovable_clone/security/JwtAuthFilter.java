@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
@@ -19,33 +20,38 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final AuthUtil authUtil;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info(request.getRequestURI());
+        try {
+            log.info(request.getRequestURI());
 
-        final String requestHeaderToken = request.getHeader("Authorization");
+            final String requestHeaderToken = request.getHeader("Authorization");
 
-        if(requestHeaderToken == null || !requestHeaderToken.startsWith("Bearer")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+            if(requestHeaderToken == null || !requestHeaderToken.startsWith("Bearer")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-        String token = requestHeaderToken.split("Bearer ")[1];
+            String token = requestHeaderToken.split("Bearer ")[1];
 //        if(token == null || !token.startsWith("Bearer ")) {
 //            filterChain.doFilter(request, response);
 //            return;
 //        }
 
-        JwtUserPrincipal user = authUtil.verifyAccessToken(token);
+            JwtUserPrincipal user = authUtil.verifyAccessToken(token);
 
-        if(user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(user, null, user.authorities());
+            if(user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(user, null, user.authorities());
 
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            handlerExceptionResolver.resolveException(request, response, null, e);
         }
-
-        filterChain.doFilter(request, response);
     }
 }

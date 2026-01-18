@@ -10,8 +10,4 @@ import java.util.Optional;
 
 public interface SubscriptionService {
     SubscriptionResponse getCurrentSubscription(Long userId);
-
-    CheckoutResponse createCheckoutSessionUrl(CheckoutRequest request, Long userId);
-
-    PortalResponse openCustomerPortal(CheckoutRequest request, Long userId);
 }

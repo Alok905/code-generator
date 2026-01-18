@@ -25,3 +25,13 @@ server:
 
 jwt:
   secret-key: 8538509589utiogsfsuFJFHD8JHFR8545849058fshHFFH89fFS7548
+
+stripe:
+  api:
+    secret: sk_test_51SqtmpIIiIxid49U1TKx21ARIxX04EzxeK7NsSIG6vykOgTEnFlWknqS9BfzZPJfFuk3sundnEI2a0iVaFJmrEmT00fxqDqxBN
+    publish: pk_test_51SqtmpIIiIxid49UWypdJZDTQFevh6Hfb5lsdaJlOloNfcHJrgWOJIJJGuZIx48bhXmkNdAJM49XkNk7mUm9FBF000kyCP0yWB
+  webhook:
+    secret: whsec_b5643f423774f00c8e858ad86d4e1e12a5a34f7dda4323cd149274e9bf1c5f6d
+    secret2: whsec_b5643f423774f00c8e858ad86d4e1e12a5a34f7dda4323cd149274e9bf1c5f6d
+
+client.url: http://localhost:8080

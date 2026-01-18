@@ -105,6 +105,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     @Override
     @PreAuthorize("@security.canManageMembers(#projectId)")
     public void removeProjectMember(Long projectId, Long memberId) {
+
         Project project = projectRepository.findById(projectId).orElseThrow();
 
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId, memberId);

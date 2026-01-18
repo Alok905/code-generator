@@ -30,7 +30,8 @@ public class User implements UserDetails {
     String password;
     String name;
 
-//    String avatarUrl;
+    @Column(unique = true)
+    String stripeCustomerId;
 
     @CreationTimestamp
     Instant createdAt;
