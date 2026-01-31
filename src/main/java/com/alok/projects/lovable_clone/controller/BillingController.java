@@ -44,8 +44,7 @@ public class BillingController {
 
     @GetMapping("/api/me/subscription")
     public ResponseEntity<SubscriptionResponse> getMySubscription() {
-        Long userId = 1L;
-        return ResponseEntity.ok(subscriptionService.getCurrentSubscription(userId));
+        return ResponseEntity.ok(subscriptionService.getCurrentSubscription());
     }
 
     @PostMapping("/api/payments/checkout")
@@ -59,7 +58,7 @@ public class BillingController {
     public ResponseEntity<PortalResponse> openCustomerPortal(
             @RequestBody CheckoutRequest request
     ) {
-        return ResponseEntity.ok(paymentProcessor.openCustomerPortal(request));
+        return ResponseEntity.ok(paymentProcessor.openCustomerPortal());
     }
 
     @PostMapping("/webhooks/payment")
@@ -91,6 +90,10 @@ public class BillingController {
 
             /// Now extract metadata only if it's a Checkout session
             Map<String, String> metadata = new HashMap<>();
+            /**
+             * it's not always of type session, for different types of events, this stripeObject will be an instance of different Classes.
+             * might be it is of type Session, Subscription, or Invoice .etc
+             */
             if(stripeObject instanceof Session session) {
                 metadata = session.getMetadata();
             }
