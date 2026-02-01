@@ -8,16 +8,22 @@ import com.alok.projects.lovable_clone.enums.SubscriptionStatus;
 import com.alok.projects.lovable_clone.error.ResourceNotFoundException;
 import com.alok.projects.lovable_clone.mapper.SubscriptionMapper;
 import com.alok.projects.lovable_clone.repository.PlanRepository;
+import com.alok.projects.lovable_clone.repository.ProjectMemberRepository;
 import com.alok.projects.lovable_clone.repository.SubscriptionRepository;
 import com.alok.projects.lovable_clone.repository.UserRepository;
 import com.alok.projects.lovable_clone.security.AuthUtil;
 import com.alok.projects.lovable_clone.service.SubscriptionService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionServiceImpl implements SubscriptionService {
@@ -28,6 +34,11 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
     private final PlanRepository planRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+
+
+    // constants
+    private final Integer FREE_TIER_PROJECTS_ALLOWED = 1;
 
 
     @Override
@@ -70,13 +81,59 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     /// "gatewaySubscriptionId" because it is not the "subscriptionId" of our database; it is the id of payment gateway (stripe)
     @Override
+    @Transactional
     public void updateSubscription(String gatewaySubscriptionId, SubscriptionStatus subscriptionStatus, Instant periodStart, Instant periodEnd, Boolean cancelAtPeriodEnd, Long planId) {
+        Subscription subscription = getSubscription(gatewaySubscriptionId);
 
+        boolean hasSubscriptionUpdated = false;
+        List<String> updations = new ArrayList<>();
+
+        if(subscriptionStatus != null && subscriptionStatus != subscription.getStatus()) {
+            subscription.setStatus(subscriptionStatus);
+            updations.add("gatewaySubscriptionId: " + subscriptionStatus);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(periodStart != null && !periodStart.equals(subscription.getCurrentPeriodStart())) {
+            subscription.setCurrentPeriodStart(periodStart);
+            updations.add("periodStart: " + periodStart);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(periodEnd != null && !periodEnd.equals(subscription.getCurrentPeriodEnd())) {
+            subscription.setCurrentPeriodEnd(periodEnd);
+            updations.add("periodEnd: " + periodEnd);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(cancelAtPeriodEnd != null && cancelAtPeriodEnd != subscription.getCancelAtPeriodEnd()) {
+            subscription.setCancelAtPeriodEnd(cancelAtPeriodEnd);
+            updations.add("cancelAtPeriodEnd: " + cancelAtPeriodEnd);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(planId != null && !planId.equals(subscription.getPlan().getId())) {
+            Plan plan = getPlan(planId);
+            subscription.setPlan(plan);
+            updations.add("planId: " + planId);
+            hasSubscriptionUpdated = true;
+        }
+
+        /// save() only changes the ENTITY STATE — it does NOT commit to DB. so, it works even without writing @Transactional
+        if(hasSubscriptionUpdated) {
+            log.debug("Subscription has been updated: {}", gatewaySubscriptionId);
+            updations.forEach(updation -> {
+                log.debug("Updation values: {}", updation);
+            });
+            subscriptionRepository.save(subscription);
+        }
     }
 
     @Override
     public void cancelSubscription(String gatewaySubscriptionId) {
-
+        Subscription subscription = getSubscription(gatewaySubscriptionId);
+        subscription.setStatus(SubscriptionStatus.CANCELED);
+        subscriptionRepository.save(subscription);
     }
 
     @Override
@@ -97,7 +154,30 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     public void markSubscriptionPastDue(String gatewaySubscriptionId) {
+        Subscription subscription = getSubscription(gatewaySubscriptionId);
 
+        if(subscription.getStatus() == SubscriptionStatus.PAST_DUE) {
+            log.debug("Subscription is already PastDue, gatewaySubscriptionId: {}", gatewaySubscriptionId);
+            return;
+        }
+        subscription.setStatus(SubscriptionStatus.PAST_DUE);
+        subscriptionRepository.save(subscription);
+
+        // Notify user with email or something else.
+    }
+
+    @Override
+    public boolean canCreateNewProject() {
+        Long userId = authUtil.getCurrentUserId();
+        SubscriptionResponse currentSubscription = getCurrentSubscription();
+
+        int countOfOwnedProjects = projectMemberRepository.countProjectOwnedByUser(userId);
+
+        if(currentSubscription.plan() == null) {
+            return countOfOwnedProjects < FREE_TIER_PROJECTS_ALLOWED;
+        }
+
+        return countOfOwnedProjects < currentSubscription.plan().maxProjects();
     }
 
 

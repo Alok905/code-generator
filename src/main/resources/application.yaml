@@ -19,9 +19,10 @@ spring:
         jdbc:
           time_zone: Asia/Kolkata
 
-server:
-  servlet:
-    context-path: /api/v1
+#server:
+#  servlet:
+#    context-path: /api/v1
+
 
 jwt:
   secret-key: 8538509589utiogsfsuFJFHD8JHFR8545849058fshHFFH89fFS7548

@@ -58,6 +58,7 @@ public class BillingController {
     public ResponseEntity<PortalResponse> openCustomerPortal(
             @RequestBody CheckoutRequest request
     ) {
+
         return ResponseEntity.ok(paymentProcessor.openCustomerPortal());
     }
 

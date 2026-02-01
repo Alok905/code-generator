@@ -90,7 +90,27 @@ public class StripePaymentProcessor implements PaymentProcessor {
 
     @Override
     public PortalResponse openCustomerPortal() {
-        return null;
+        Long userId = authUtil.getCurrentUserId();
+        User user = getUser(userId);
+
+        String stripeCustomerId = user.getStripeCustomerId();
+
+        if(stripeCustomerId == null || stripeCustomerId.isEmpty()) {
+            throw new ResourceNotFoundException("User doesn't have a Stripe Customer ID, Userid: ", userId.toString());
+        }
+
+        try {
+            var portalSession = com.stripe.model.billingportal.Session.create(
+                    com.stripe.param.billingportal.SessionCreateParams.builder()
+                            .setCustomer(stripeCustomerId)
+                            .setReturnUrl(frontendUrl)
+                            .build()
+            );
+
+            return new PortalResponse(portalSession.getUrl());
+        } catch (StripeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -112,6 +132,15 @@ public class StripePaymentProcessor implements PaymentProcessor {
         }
     }
 
+    /**
+     * @param session
+     * @param metadata
+     * if the checkout is completed (card details, and payment), then create a subscription.
+     * if the user has done checkout first time, then store the customer id in user table.
+     *      - any ways, if the user already exists in stripe (means its customer id), then this event will not be triggered.
+     *      - only for the first time, this event will get triggered.
+     * create a new subscription and make it incomplete; invoice paid event will make it active.
+     */
     private void handleCheckoutSessionCompleted(Session session, Map<String, String> metadata) {
         if(session == null) {
             log.error("session object was null inside handleCheckoutSessionCompleted");
@@ -150,6 +179,12 @@ public class StripePaymentProcessor implements PaymentProcessor {
         subscriptionService.activateSubscription(userId, planId, subscriptionId, customerId);
     }
 
+    /**
+     * @param subscription
+     * If user updates its subscription/request cancellation (because it'll be cancelled after the current period end; not immediatly),
+     *      then it'll be triggered (like upgraded/downgraded to another plan)
+     * here just update the existing subscription.
+     */
     private void handleCustomerSubscriptionUpdated(Subscription subscription){
         if(subscription == null) {
             log.error("subscription object was null inside handleCustomerSubscriptionUpdated");
@@ -176,14 +211,19 @@ public class StripePaymentProcessor implements PaymentProcessor {
          */
         Long planId = resolvePlanId(item.getPrice());
 
+//        subscriptionService.updateSubscription(
+//                subscription.getId(), subscriptionStatus, periodStart, periodEnd,
+//                subscription.getCancelAtPeriodEnd(), planId
+//        );
         subscriptionService.updateSubscription(
                 subscription.getId(), subscriptionStatus, periodStart, periodEnd,
-                subscription.getCancelAtPeriodEnd(), planId
+                subscription.getCancelAt() != null, planId
         );
     }
 
     /**
-     * in the subscription is canceled, then it'll be triggered.
+     * in the subscription is "canceled" then it is triggered;
+     *      - also if the subscription period "ends" then it is triggered from Stripe automatically;
      * delete the subscription from the database (handled in "cancelSubscription" method of subscriptionService (As it is not Stripe related code).
      */
     private void handleCustomerSubscriptionDeleted(Subscription subscription){
@@ -196,6 +236,11 @@ public class StripePaymentProcessor implements PaymentProcessor {
     }
 
 
+    /**
+     * @param invoice
+     * it'll be triggered if checkout is completed (payment done) or recurring auto-pay or manual-pay.
+     * mark the existing subscription status as active if it is incomplete/past_due
+     */
     private void handleInvoicePaid(Invoice invoice) {
         /**
          * invoices are also having Subscription's reference.
@@ -222,6 +267,11 @@ public class StripePaymentProcessor implements PaymentProcessor {
         }
     }
 
+    /**
+     * @param invoice
+     * here, just the "payment is failed"; subscription is "not ended yet";
+     * if the subscription ends, Stripe will automatically trigger customer.subscription.deleted which will trigger the "handleCustomerSubscriptionDeleted" method.
+     */
     private void handleInvoicePaymentFailed(Invoice invoice){
         /**
          * if the payment failed (auto-debit or manual pay) then it'll be triggered.
@@ -238,6 +288,7 @@ public class StripePaymentProcessor implements PaymentProcessor {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User", userId.toString()));
     }
+
     private SubscriptionStatus mapStripeStatusToEnum(String status) {
         return switch (status) {
             case "active" -> SubscriptionStatus.ACTIVE;
@@ -251,6 +302,7 @@ public class StripePaymentProcessor implements PaymentProcessor {
             }
         };
     }
+
     private Instant toInstant(Long epoch) {
         return epoch == null ? null : Instant.ofEpochSecond(epoch);
     }
