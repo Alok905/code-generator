@@ -9,10 +9,10 @@ public class ChatSessionId implements Serializable {
     private Long userId;
     private Long projectId;
 
-    public ChatSessionId(){}
-
-    public ChatSessionId(Long userId, Long projectId) {
-        this.userId = userId;
-        this.projectId = projectId;
-    }
+//    public ChatSessionId(){}
+//
+//    public ChatSessionId(Long userId, Long projectId) {
+//        this.userId = userId;
+//        this.projectId = projectId;
+//    }
 }

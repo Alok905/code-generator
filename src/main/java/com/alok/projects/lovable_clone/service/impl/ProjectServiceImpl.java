@@ -42,19 +42,15 @@ public class ProjectServiceImpl implements ProjectService {
     SubscriptionService subscriptionService;
 
 
-
     @Override
     public ProjectResponse createProject(ProjectRequest request) {
 
-        if(!subscriptionService.canCreateNewProject()) {
+        if (!subscriptionService.canCreateNewProject()) {
             throw new BadRequestException("User cannot create a new project with current Plan, Upgrade now");
         }
 
 
         Long userId = authUtil.getCurrentUserId();
-//        User owner = userRepository.findById(userId).orElseThrow(
-//                () -> new ResourceNotFoundException("User", userId.toString())
-//        );
 
         /// because we only need the user's id, not everything. so getting reference is enough.
         User owner = userRepository.getReferenceById(userId);
