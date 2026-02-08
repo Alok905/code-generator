@@ -57,9 +57,6 @@ public class Project {
     )
     List<ProjectMember> projectMembers;
 
-//    @ManyToMany(mappedBy = "projects")
-//    List<User> users;
-
     @OneToMany(mappedBy = "project")
     List<ProjectFile> projectFiles;
 

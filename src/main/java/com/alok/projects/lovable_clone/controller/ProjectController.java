@@ -3,7 +3,6 @@ package com.alok.projects.lovable_clone.controller;
 import com.alok.projects.lovable_clone.dto.project.ProjectRequest;
 import com.alok.projects.lovable_clone.dto.project.ProjectResponse;
 import com.alok.projects.lovable_clone.dto.project.ProjectSummaryResponse;
-import com.alok.projects.lovable_clone.security.AuthUtil;
 import com.alok.projects.lovable_clone.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;

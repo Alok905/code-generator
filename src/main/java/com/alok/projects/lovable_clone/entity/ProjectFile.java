@@ -1,13 +1,10 @@
 package com.alok.projects.lovable_clone.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -17,33 +14,30 @@ import java.time.Instant;
 @FieldDefaults(level = AccessLevel.PRIVATE) // it'll make the fields private by default
 @Getter
 @Setter
+@Table(name = "project_files")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class ProjectFile {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "project_id"
+            name = "project_id",
+            nullable = false
     )
     Project project;
 
+    @Column(nullable = false)
     String path; // file path inside the project
 
     String minioObjectKey; // min io will be used to store the files;
 
+    @CreationTimestamp
     Instant createdAt;
+
+    @UpdateTimestamp
     Instant updatedAt;
-
-    // because the projects will be collaborative; multiple users can be added in the project member;
-    @ManyToOne
-    @JoinColumn(
-            name = "created_by"
-    )
-    User createdBy;
-    @ManyToOne
-    @JoinColumn(
-            name = "updated_by"
-    )
-    User updatedBy;
-
 }

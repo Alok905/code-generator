@@ -47,3 +47,9 @@ client.url: http://localhost:8080
 
 openrouter:
   api-key: #####PLACEHOLDER#####
+
+minio:
+  url: http://localhost:4000
+  access-key: #####PLACEHOLDER#####
+  secret-key: #####PLACEHOLDER#####
+  project-bucket: projects

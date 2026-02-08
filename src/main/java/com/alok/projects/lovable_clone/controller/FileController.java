@@ -2,11 +2,12 @@ package com.alok.projects.lovable_clone.controller;
 
 import com.alok.projects.lovable_clone.dto.project.FileContentResponse;
 import com.alok.projects.lovable_clone.dto.project.FileNode;
-import com.alok.projects.lovable_clone.service.FileService;
+import com.alok.projects.lovable_clone.service.ProjectFileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,12 +17,13 @@ import java.util.List;
 @RequestMapping(path = "/projects/{projectId}/files")
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class FileController {
-    FileService fileService;
+    ProjectFileService projectFileService;
 
     @GetMapping
+    @PreAuthorize("@security.canViewProject(#projectId)")  /// --------- extra
     public ResponseEntity<List<FileNode>> getFileTree(@PathVariable Long projectId) {
         Long userId = 1L;
-        return ResponseEntity.ok(fileService.getFileTree(projectId, userId));
+        return ResponseEntity.ok(projectFileService.getFileTree(projectId, userId));
     }
 
     @GetMapping("/{*path}")
@@ -30,6 +32,6 @@ public class FileController {
             @PathVariable String path
     ) {
         Long userId = 1L;
-        return ResponseEntity.ok(fileService.getFileContent(projectId, path, userId));
+        return ResponseEntity.ok(projectFileService.getFileContent(projectId, path, userId));
     }
 }

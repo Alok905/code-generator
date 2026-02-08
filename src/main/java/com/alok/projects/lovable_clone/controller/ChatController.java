@@ -25,6 +25,7 @@ public class ChatController {
                 .map(
                         data -> ServerSentEvent.
                                 <String>builder()
+                                .data(data)
                                 .build()
                 );
     }

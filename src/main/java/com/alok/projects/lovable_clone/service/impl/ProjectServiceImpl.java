@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 
 import java.time.Instant;
 import java.util.List;
@@ -40,6 +39,7 @@ public class ProjectServiceImpl implements ProjectService {
     ProjectMemberRepository projectMemberRepository;
     AuthUtil authUtil;
     SubscriptionService subscriptionService;
+
 
 
     @Override
@@ -127,6 +127,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setDeletedAt(Instant.now());
         projectRepository.save(project);
     }
+
 
 
     /// INTERNAL FUNCTIONS

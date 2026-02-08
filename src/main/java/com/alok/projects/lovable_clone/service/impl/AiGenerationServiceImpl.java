@@ -1,18 +1,23 @@
 package com.alok.projects.lovable_clone.service.impl;
 
+import com.alok.projects.lovable_clone.llm.PromptUtils;
 import com.alok.projects.lovable_clone.security.AuthUtil;
 import com.alok.projects.lovable_clone.service.AiGenerationService;
+import com.alok.projects.lovable_clone.service.ProjectFileService;
+import com.alok.projects.lovable_clone.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -21,11 +26,18 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
     private final ChatClient chatClient;
     private final AuthUtil authUtil;
+    private final ProjectFileService projectFileService;
+
+    private static final Pattern FILE_TAG_PATTERN = Pattern.compile(
+            "<file path=\"([^\"]+)\">(.*?)</file>",
+            Pattern.DOTALL
+    );
 
     @Override
     @PreAuthorize("@security.canEditProject(#projectId)")
     public Flux<String> streamResponse(String userMessage, Long projectId) {
         Long userId = authUtil.getCurrentUserId();
+
 
         createChatSessionIfNotExists(projectId, userId);
 
@@ -37,7 +49,8 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         StringBuilder fullResponseBuffer = new StringBuilder();
 
         return chatClient.prompt()
-                .system("SYSTEM_PROMPT_HERE")
+                .system(PromptUtils.CODE_GENERATION_SYSTEM_PROMPT)
+//                .system("SYSTEM PROMPT")
                 .user(userMessage)
                 .advisors(
                         advisorSpec -> {
@@ -57,13 +70,37 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                         parseAndSaveFiles(fullResponseBuffer.toString(), projectId);
                     });
                 })
-                .doOnError(error -> log.error("Error during streaming for projectId: " + projectId, error))
+                .doOnError(error -> log.error("Error during streaming for projectId: {}", projectId))
                 .map(response -> Objects.requireNonNull(response.getResult().getOutput().getText()));
     }
 
+
     private void parseAndSaveFiles(String fullResponse, Long projectId) {
+
+        String dummy = """
+                <message>something something</message>
+                <file path="src/App.jsx">
+                    import App from './App.jsx';
+                    ....
+                    ....
+                </file>
+                <message>something something</message>
+                <file path="src/App.jsx">
+                    import App from './App.jsx';
+                    ....
+                    ....
+                </file>
+                """;
+        Matcher matcher = FILE_TAG_PATTERN.matcher(fullResponse);
+        while (matcher.find()) {
+            String filePath = matcher.group(1);
+            String fileContent = matcher.group(2);
+
+            projectFileService.saveFile(projectId, filePath, fileContent);
+        }
     }
 
     private void createChatSessionIfNotExists(Long projectId, Long userId) {
+
     }
 }
