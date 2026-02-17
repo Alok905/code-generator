@@ -9,6 +9,8 @@ import com.alok.projects.lovable_clone.mapper.ProjectFileMapper;
 import com.alok.projects.lovable_clone.repository.ProjectFileRepository;
 import com.alok.projects.lovable_clone.repository.ProjectRepository;
 import com.alok.projects.lovable_clone.service.ProjectFileService;
+import io.minio.BucketExistsArgs;
+import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +35,11 @@ public class ProjectFileServiceImpl implements ProjectFileService {
     private final MinioClient minioClient;
     private final ProjectFileMapper projectFileMapper;
 
-    @Value("minio.project-bucket")
+    @Value("${minio.project-bucket}")
     private String projectBucket;
 
     @Override
-    public List<FileNode> getFileTree(Long projectId, Long userId) {
+    public List<FileNode> getFileTree(Long projectId) {
         List<ProjectFile> projectFileList = projectFileRepository.findByProjectId(projectId);
         return projectFileMapper.toListOfFileNode(projectFileList);
     }
@@ -62,12 +64,13 @@ public class ProjectFileServiceImpl implements ProjectFileService {
             InputStream inputStream = new ByteArrayInputStream(contentBytes);
 
             ///  saving the file content
+            String fileContentType = determineContentType(filePath);
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(projectBucket)
                             .object(objectKey)
                             .stream(inputStream, contentBytes.length, -1)
-                            .contentType(determineContentType(filePath))
+                            .contentType(fileContentType)
                             .build()
             );
 
@@ -97,7 +100,7 @@ public class ProjectFileServiceImpl implements ProjectFileService {
 
     private String determineContentType(String path) {
         String type = URLConnection.guessContentTypeFromName(path);
-        if (type == null)   return type;
+        if (type != null)   return type;
         if (path.endsWith(".js") || path.endsWith(".jsx") || path.endsWith(".ts") || path.endsWith(".tsx"))  return "text/javascript";
         if (path.endsWith(".json")) return "application/json";
         if (path.endsWith(".css")) return "text/css";

@@ -103,6 +103,7 @@ public class PromptUtils {
             ## 8. Always Do This:
             - Always read the file by using the read_files tool before updating the file content, if the file content is not known by you already.
             - If you are going to calling read_files tool then Always generate a tool tag with proper args before calling the read_files tool.
-            - Always keep your message short and to the point.           \s
+            - Always keep your message short and to the point.
+            - you must return at least one file content inside <file path="some path"></file> tag.  \s
            \s""";
 }

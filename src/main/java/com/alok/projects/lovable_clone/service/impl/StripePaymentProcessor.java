@@ -68,7 +68,7 @@ public class StripePaymentProcessor implements PaymentProcessor {
 //                .build();
 
         /** NOTE
-         * by default, each interaction will create one subscription in stripe; as it doesn't know our own backend that the user who is interacting is same or different.
+//         * by default, each interaction will create one subscription in stripe; as it doesn't know our own backend that the user who is interacting is same or different.
          * so, when we set the stripeCustomerId (if the user is already there in the subscription earlier) then it'll take that user's entry only and will not create another entry in the subscription for the user.
          * setting customerEmail will make sure that the user logged in in our system has same username as that inside Stripe.
          */
