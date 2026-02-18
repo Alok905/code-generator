@@ -9,10 +9,7 @@ import com.alok.projects.lovable_clone.mapper.ProjectFileMapper;
 import com.alok.projects.lovable_clone.repository.ProjectFileRepository;
 import com.alok.projects.lovable_clone.repository.ProjectRepository;
 import com.alok.projects.lovable_clone.service.ProjectFileService;
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,8 +42,23 @@ public class ProjectFileServiceImpl implements ProjectFileService {
     }
 
     @Override
-    public FileContentResponse getFileContent(Long projectId, String path, Long userId) {
-        return null;
+    public FileContentResponse getFileContent(Long projectId, String path) {
+        String objectName = projectId + "/" + path;
+
+        try(
+                InputStream is = minioClient.getObject(
+                        GetObjectArgs.builder()
+                                .bucket(projectBucket)
+                                .object(objectName)
+                                .build()
+                )
+                ) {
+            String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            return new FileContentResponse(path, content);
+        } catch (Exception e) {
+            log.error("Failed to read file: {}/{}", projectId, path, e);
+            throw new RuntimeException("Failed to read file content.", e);
+        }
     }
 
     @Override

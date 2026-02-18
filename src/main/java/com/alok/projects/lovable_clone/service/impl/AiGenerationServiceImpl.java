@@ -2,6 +2,7 @@ package com.alok.projects.lovable_clone.service.impl;
 
 import com.alok.projects.lovable_clone.llm.PromptUtils;
 import com.alok.projects.lovable_clone.llm.advisors.FileTreeContextAdvisor;
+import com.alok.projects.lovable_clone.llm.tools.CodeGenerationTools;
 import com.alok.projects.lovable_clone.security.AuthUtil;
 import com.alok.projects.lovable_clone.service.AiGenerationService;
 import com.alok.projects.lovable_clone.service.ProjectFileService;
@@ -32,6 +33,8 @@ public class AiGenerationServiceImpl implements AiGenerationService {
             Pattern.DOTALL
     );
 
+
+
     @Override
     @PreAuthorize("@security.canEditProject(#projectId)")
     public Flux<String> streamResponse(String userMessage, Long projectId) {
@@ -47,6 +50,8 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
         StringBuilder fullResponseBuffer = new StringBuilder();
 
+        CodeGenerationTools codeGenerationTools = new CodeGenerationTools(projectFileService, projectId);
+
         return chatClient.prompt()
                 .system(PromptUtils.CODE_GENERATION_SYSTEM_PROMPT)
 //                .system("SYSTEM PROMPT")
@@ -56,6 +61,9 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                             advisorSpec.params(advisorParams);
                             advisorSpec.advisors(fileTreeContextAdvisor);
                         }
+                )
+                .tools(
+                    codeGenerationTools
                 )
                 .stream()
                 .chatResponse()

@@ -60,7 +60,7 @@ public class ProjectTemplateServiceImpl implements ProjectTemplateService {
                 String sourceKey = item.objectName(); /// path
                 /// just getting the path from starter bucket to project bucket by altering sourceKey
                 String cleanPath = sourceKey.replaceFirst(REACT_VITE_STARTER_OBJECT_NAME + "/", "");
-                String destKey = projectId + cleanPath;
+                String destKey = projectId + "/" + cleanPath;
 
                 minioClient.copyObject(
                         CopyObjectArgs.builder()

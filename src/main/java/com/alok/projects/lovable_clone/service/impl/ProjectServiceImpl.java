@@ -76,7 +76,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         projectMemberRepository.save(projectMember);
 
-        projectTemplateService.initializeProjectFromTemplate(project.getId());17632d5
+        projectTemplateService.initializeProjectFromTemplate(project.getId());
 
         return projectMapper.toProjectResponse(project);
     }
