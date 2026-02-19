@@ -1,10 +1,14 @@
 package com.alok.projects.lovable_clone.entity.ids;
 
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Embeddable
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChatSessionId implements Serializable {
     private Long userId;
     private Long projectId;

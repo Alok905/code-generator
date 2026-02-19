@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.List;
 
 // Chat message is there inside the Chat session
 
@@ -30,12 +31,21 @@ public class ChatMessage {
     })
     ChatSession chatSession;
 
-    @Column(columnDefinition = "text", nullable = false)
-    String content;
+    /**
+     * /// It'll not be needed because we'll store the content in ChatEvent (multiple types of chat messages type can be there)
+     *
+     * @Column(columnDefinition = "text", nullable = false)
+     * String content;
+     */
+
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    MessageRole role; // who sent the message
+    MessageRole role; // who sent the message (user/system) // for system, the different types are there in ChatEvents
+
+    @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OrderBy("sequenceOrder ASC") /// if you want to order according to a particular field (here: sequenceOrder)
+    List<ChatEvent> events;
 
     Integer tokensUsed = 0;
 

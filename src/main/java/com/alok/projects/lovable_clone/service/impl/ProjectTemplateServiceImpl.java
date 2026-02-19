@@ -31,7 +31,7 @@ public class ProjectTemplateServiceImpl implements ProjectTemplateService {
     private final ProjectRepository projectRepository;
 
     private final String STARTER_BUCKET_NAME = "project-starter";
-    private final String REACT_VITE_STARTER_OBJECT_NAME = "test-project";
+    private final String REACT_VITE_STARTER_OBJECT_NAME = "starter-project";
 
     @Value("${minio.project-bucket}")
     private String TARGET_BUCKET_NAME;
