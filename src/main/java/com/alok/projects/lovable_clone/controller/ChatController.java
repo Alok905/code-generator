@@ -15,12 +15,13 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/chat")
 public class ChatController {
 
     private final AiGenerationService aiGenerationService;
     private final ChatService chatService;
 
-    @PostMapping(value = "/api/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(value = "stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> streamChat(
             @RequestBody ChatRequest request
             ) {
@@ -34,7 +35,7 @@ public class ChatController {
                 );
     }
 
-    @GetMapping("/projects/{projectId}")
+    @GetMapping("projects/{projectId}")
     public ResponseEntity<List<ChatResponse>> getChatHistory(
             @PathVariable Long projectId
     ) {

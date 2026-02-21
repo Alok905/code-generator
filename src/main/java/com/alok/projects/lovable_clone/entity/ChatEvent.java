@@ -35,9 +35,12 @@ public class ChatEvent {
     @Column(columnDefinition = "text") /// columnDefinition is used to specify the type of column in db explicitly. by default it is VARCHAR(255) but here we need to store huge data
     String content;
 
+    /// for <file></file>
+    /// <file path="src/hooks/useTheme.ts"> ... </file>
     String filePath; /// NULL unless file edit
 
-    /// if ChatEventType is TOOL_LOG then we'll store the metadata.
+    /// for <tool></tool>
+    /// <tool args="src/components/ThemeToggle.tsx,src/components/Navbar.tsx,src/App.tsx,src/index.css"> ... </tool>
     @Column(columnDefinition = "text")
     String metadata;
 }

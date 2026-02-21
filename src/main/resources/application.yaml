@@ -53,3 +53,6 @@ minio:
   access-key: #####PLACEHOLDER#####
   secret-key: #####PLACEHOLDER#####
   project-bucket: projects
+
+#######################################################################################
+# will use: qwen/qwen3-coder:free   from "https://openrouter.ai/"

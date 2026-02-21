@@ -76,6 +76,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         projectMemberRepository.save(projectMember);
 
+        /// whenever someone create a new project, the starter files should be copied in the project's MinIO directory.
         projectTemplateService.initializeProjectFromTemplate(project.getId());
 
         return projectMapper.toProjectResponse(project);

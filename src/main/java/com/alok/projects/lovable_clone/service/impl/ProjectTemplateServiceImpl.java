@@ -36,6 +36,7 @@ public class ProjectTemplateServiceImpl implements ProjectTemplateService {
     @Value("${minio.project-bucket}")
     private String TARGET_BUCKET_NAME;
 
+    /// store the starter files in MinIO directory of the current Project and metadata (path and all) in postgres database.
     @Override
     public void initializeProjectFromTemplate(Long projectId) {
 

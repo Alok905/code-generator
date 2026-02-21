@@ -4,6 +4,7 @@ import com.alok.projects.lovable_clone.dto.project.FileNode;
 import com.alok.projects.lovable_clone.service.ProjectFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.StreamAdvisor;
@@ -18,7 +19,6 @@ import reactor.core.publisher.Flux;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -29,13 +29,14 @@ public class FileTreeContextAdvisor implements StreamAdvisor {
 
 
     @Override
-    public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain streamAdvisorChain) {
+    public @NonNull Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain streamAdvisorChain) {
         Map<String, Object> context = chatClientRequest.context();
         Long projectId = Long.parseLong(context.getOrDefault("projectId", 0).toString());
         ChatClientRequest augmentedChatClientRequest = augmentRequestWithFileTree(chatClientRequest, projectId);
         return streamAdvisorChain.nextStream(augmentedChatClientRequest);
     }
 
+    /// this method is this big just to make sure the system prompt and file tree and user prompt will be in order to make use of LLM cache for cost optimization by reduction in usage of tokens.
     private ChatClientRequest augmentRequestWithFileTree(ChatClientRequest request, Long projectId) {
 
         List<Message> incomingMessages = request.prompt().getInstructions();
@@ -55,6 +56,7 @@ public class FileTreeContextAdvisor implements StreamAdvisor {
          */
         List<Message> allMessages = new ArrayList<>();
 
+        /// 1st: system prompt
         if(systemMessage != null) {
             allMessages.add(systemMessage);
         }
@@ -62,17 +64,20 @@ public class FileTreeContextAdvisor implements StreamAdvisor {
         List<FileNode> fileTree = projectFileService.getFileTree(projectId);
         String fileTreeContext = "\n\n ----- FILE_TREE -----\n" + fileTree.toString();
 
+        /// 2nd: file tree
         allMessages.add(new SystemMessage(fileTreeContext));
+        /// 3rd: user prompt
         allMessages.addAll(userMessages);
 
-        /// request.prompt().getOptions() will give a ChatOption object which contains the headers like temperature, topP, topK etc etc.
+        /// it is just to mutate the ChatClientRequest
         return request.mutate()
+                /// request.prompt().getOptions() will give a ChatOption object which contains the headers like temperature, topP, topK etc etc.
                 .prompt(new Prompt(allMessages, request.prompt().getOptions()))
                 .build();
     }
 
     @Override
-    public String getName() {
+    public @NonNull String getName() {
         return "FileTreeContextAdvisor";
     }
 

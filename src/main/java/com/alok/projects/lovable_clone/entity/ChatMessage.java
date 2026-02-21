@@ -31,20 +31,20 @@ public class ChatMessage {
     })
     ChatSession chatSession;
 
-    /**
-     * /// It'll not be needed because we'll store the content in ChatEvent (multiple types of chat messages type can be there)
-     *
-     * @Column(columnDefinition = "text", nullable = false)
-     * String content;
-     */
+
+    /// NULL for system message; in case of system message ChatEvent will keep the content.
+    /// in case of User message, this content will be there.
+    @Column(columnDefinition = "text")
+    String content;
 
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     MessageRole role; // who sent the message (user/system) // for system, the different types are there in ChatEvents
 
+    /// if you want to order according to a particular field (here: sequenceOrder)
     @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @OrderBy("sequenceOrder ASC") /// if you want to order according to a particular field (here: sequenceOrder)
+    @OrderBy("sequenceOrder ASC")
     List<ChatEvent> events;
 
     Integer tokensUsed = 0;
