@@ -76,7 +76,7 @@ public class LlmResponseParser {
                 }
                 default -> { continue; }
             }
-//            chatEvents.add(builder.build());
+            chatEvents.add(builder.build());
         }
         return chatEvents;
     }

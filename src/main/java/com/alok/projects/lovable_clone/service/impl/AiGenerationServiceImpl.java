@@ -9,10 +9,7 @@ import com.alok.projects.lovable_clone.llm.LlmResponseParser;
 import com.alok.projects.lovable_clone.llm.PromptUtils;
 import com.alok.projects.lovable_clone.llm.advisors.FileTreeContextAdvisor;
 import com.alok.projects.lovable_clone.llm.tools.CodeGenerationTools;
-import com.alok.projects.lovable_clone.repository.ChatMessageRepository;
-import com.alok.projects.lovable_clone.repository.ChatSessionRepository;
-import com.alok.projects.lovable_clone.repository.ProjectRepository;
-import com.alok.projects.lovable_clone.repository.UserRepository;
+import com.alok.projects.lovable_clone.repository.*;
 import com.alok.projects.lovable_clone.security.AuthUtil;
 import com.alok.projects.lovable_clone.service.AiGenerationService;
 import com.alok.projects.lovable_clone.service.ProjectFileService;
@@ -26,6 +23,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +41,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatSessionRepository chatSessionRepository;
     private final LlmResponseParser llmResponseParser;
+    private final ChatEventRepository chatEventRepository;
 
     private static final Pattern FILE_TAG_PATTERN = Pattern.compile(
             "<file path=\"([^\"]+)\">(.*?)</file>",
@@ -54,10 +53,11 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     @PreAuthorize("@security.canEditProject(#projectId)")
     public Flux<String> streamResponse(String userMessage, Long projectId) {
         Long userId = authUtil.getCurrentUserId();
-        ChatSession chatSession = createChatSessionIfNotExists(userId, projectId);
+        ChatSession chatSession = createChatSessionIfNotExists(projectId, userId);
 
+        AtomicReference<Long> startTime = new AtomicReference<>(System.currentTimeMillis());
+        AtomicReference<Long> endTime = new AtomicReference<>(0L);
 
-        createChatSessionIfNotExists(projectId, userId);
 
         /// it is being attached to the chat client because we'll need the project ID to get the file-tree of this project.
         /// which can be fed to AI to let it get know about the files we do have right now.
@@ -89,14 +89,22 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 /// doOnNext, doOnComplete, doOnError will be executed when subscribe() is called. these will not trigger flux
                 .doOnNext(response -> {
                     String content = response.getResult().getOutput().getText();
+
+                    /// because when we'll get first response, it means LLM has completed its thinking process.
+                    if (content != null && !content.isEmpty() && endTime.get() == 0) {
+                        endTime.set(System.currentTimeMillis());
+                    }
+
                     fullResponseBuffer.append(content);
                 })
                 .doOnComplete(() -> {
                     Schedulers.boundedElastic().schedule(() -> {
 //                        parseAndSaveFiles(fullResponseBuffer.toString(), projectId);
+
+                        long duration = (endTime.get() - startTime.get()) / 1000;
                         /// after the stream is completed, extract the different types of contents like userMessage and systemMessage
                         /// system message contains many types of contents (which are called "events" in this project) like tool call, file read, file generation etc.
-                        finalizeChats(userMessage, chatSession, fullResponseBuffer.toString(), projectId);
+                        finalizeChats(userMessage, chatSession, fullResponseBuffer.toString(), duration);
                     });
                 })
                 .doOnError(error -> log.error("Error during streaming for projectId: {}", projectId))
@@ -115,7 +123,8 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     }
 
     /// the messages can be easily fetched sequentially according to creation time, so no need to keep a "sequenceOrder" field in ChatMessage entity unline ChatEvent entity
-    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long projectId) {
+    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration) {
+        Long projectId = chatSession.getProject().getId();
         /// first store the user's message
         chatMessageRepository.save(
                 ChatMessage.builder()
@@ -129,14 +138,27 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         ChatMessage assistantMessage = ChatMessage.builder()
                 .role(MessageRole.ASSISTANT)
                 .chatSession(chatSession)
+                .content("assistant content")
                 .build();
 
+        assistantMessage = chatMessageRepository.save(assistantMessage);
 
-        List<ChatEvent> chatEvents = llmResponseParser.parseChatEvents(fullText, assistantMessage);
+        List<ChatEvent> chatEventList = llmResponseParser.parseChatEvents(fullText, assistantMessage);
+        chatEventList.addFirst(
+                ChatEvent.builder()
+                        .type(ChatEventType.THOUGHT)
+                        .chatMessage(assistantMessage)
+                        .content(String.format("Thought for %ds", duration))
+                        .sequenceOrder(0)
+//                        .content("Thought for " + duration + "s")
+                        .build()
+        );
 
-        chatEvents.stream()
+        chatEventList.stream()
                 .filter(e -> e.getType() == ChatEventType.FILE_EDIT)
                 .forEach(e -> projectFileService.saveFile(projectId, e.getFilePath(), e.getContent()));
+
+        chatEventRepository.saveAll(chatEventList);
     }
 
 
@@ -165,7 +187,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     }
 
     private ChatSession createChatSessionIfNotExists(Long projectId, Long userId) {
-        ChatSessionId chatSessionId = new ChatSessionId(projectId, userId);
+        ChatSessionId chatSessionId = new ChatSessionId(userId, projectId);
         ChatSession chatSession = chatSessionRepository.findById(chatSessionId)
                 .orElse(null);
 
@@ -181,7 +203,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                     .user(user)
                     .build();
 
-            chatSession =  chatSessionRepository.save(chatSession);
+            chatSession = chatSessionRepository.save(chatSession);
         }
         return chatSession;
     }
